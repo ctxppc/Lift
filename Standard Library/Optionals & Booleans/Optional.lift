@@ -1,0 +1,59 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+enum Optional {
+	
+	derived type init(_ Value: Any.Type)
+	
+	type let Value: Any.Type {
+		@abstract: The type of the optional value.
+	}
+	
+	case none
+	case some(_ value: Value)
+	
+}
+
+extension Optional : ExpressibleByNilLiteral {
+	init(nilLiteral: ()) {
+		self = .none
+	}
+}
+
+extension Optional : BidirectionalCollection, MutableCollection {
+	
+	enum Index {
+		case value
+		case end
+	}
+	
+	var startIndex: Index {
+		switch self {
+			case .none:	return .end
+			case .some:	return .value
+		}
+	}
+	
+	var endIndex: Index {
+		return .end
+	}
+	
+	subscript (index: Index) -> Value {
+		@precondition: index == .value
+		get { return self !! "Unwrapping nil value" }
+		set { self = newValue }
+	}
+	
+	func index(before index: Index) -> Index {
+		@precondition: index == .end
+		@precondition: self != nil
+		return .value
+	}
+	
+	func index(after index: Index) -> Index {
+		@precondition: index == .value
+		return .end
+	}
+	
+}

@@ -1,0 +1,46 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct Byte {
+	
+	@abstract: A binary sequence of 8 bits.
+	
+	native var bits: BitCollection { get set }
+	struct BitCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of bits that make up a byte.
+		
+		type let Index = Int
+		type let Element = Bit
+		
+		let startIndex: Index = 0
+		let endIndex: Index = 7
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+	native var inverted: Byte {
+		@abstract: The bitwise inversion of the byte.
+		get set
+	}
+	
+}
+
+struct Bit {
+	
+	derived type init(_ set: Bool)
+	
+	var set: Bool {
+		@abstract: Whether the bit is set (high, on, …).
+	}
+	
+}

@@ -1,0 +1,89 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct Int {
+	
+	@abstract: A binary, fixed-length, signed integer.
+	
+	derived type init(_ length: Int = Architecture.current.optimalWordLength(for: .integers)) where length >= 1
+	
+	type init(minimalLength: Int) {
+		Self.init(Architecture.current.optimalWordLength(for: .integers, lowerBound: minimalLength))
+	}
+	
+	type init(maximalLength: Int) where maximalLength >= 1 {
+		Self.init(Architecture.current.optimalWordLength(for: .integers, upperBound: maximalLength))
+	}
+	
+	type let length: Int where length >= 1 {
+		@abstract: The length of the integer, in bits.
+	}
+	
+	native var words: WordCollection { get set }
+	struct WordCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of words that make up an integer.
+		
+		type let Index = Int
+		type let Element = Word
+		
+		let startIndex: Index = 0
+		native var endIndex: Index { get }
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+	native var bytes: ByteCollection { get set }
+	struct ByteCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of bytes that make up an integer.
+		
+		type let Index = Int
+		type let Element = Byte
+		
+		let startIndex: Index = 0
+		native var endIndex: Index { get }
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+	native var bits: BitCollection { get set }
+	struct BitCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of bits that make up an integer.
+		
+		type let Index = Int
+		type let Element = Bit
+		
+		let startIndex: Index = 0
+		native var endIndex: Index { get }
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+}

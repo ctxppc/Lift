@@ -38,7 +38,7 @@ struct Initialiser {
 @available(from: Lift 1.0)
 extension Initialiser : Functor {
 	
-	derived implicit init<Subinitialiser : Method>(_ submethod: Subinitialiser) where Self.Argument <: Subinitialiser.Argument, Subinitialiser.Result <: Self.Result, Self.failable --> Subinitialiser.failable
+	derived implicit init<Subinitialiser : Initialiser>(_ submethod: Subinitialiser) where Self.Argument <: Subinitialiser.Argument, Subinitialiser.Result <: Self.Result, Self.failable --> Subinitialiser.failable
 	
 	type let Result = Subject
 	
