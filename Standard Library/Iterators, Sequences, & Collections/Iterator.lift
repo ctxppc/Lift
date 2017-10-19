@@ -1,0 +1,38 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+protocol Iterator {
+	
+	@abstract: A type that provides the values of a sequence one at a time.
+	
+	type let Element: Any.Type {
+		@abstract: The type of the iterator's elements.
+	}
+	
+	type let failable: Bool {
+		@abstract: Whether querying the next element may fail.
+	}
+	
+	type let infinite: Bool {
+		@abstract: Whether the iterator is known to be infinite in all cases.
+	}
+	
+	type let IterationResult = infinite ? Element : Element?
+	
+	mutating func next() throws[if: failable] -> IterationResult {
+		@abstract: Returns the next element in the iterator, or `nil` if the iterator is exhausted.
+		@details: Repeatedly calling this method returns, in order, all the elements of the underlying sequence. As soon as the sequence has run out of elements, all subsequent calls return `nil`.
+		@precondition: No previous invocation of the method has thrown an error.
+		@throws: An error if the next element, if it exists, couldn't be fetched. No error is thrown if it is known that there is no next element. The method does not throw errors if `failable` is `false`.
+		@returns: The next element in the underlying sequence, if a next element exists; otherwise, `nil`.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+extension Iterator {
+	
+	derived type init(of Element: Any.Type, failable: Bool = false, infinite: Bool = false)
+	
+}

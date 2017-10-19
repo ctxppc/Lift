@@ -1,0 +1,36 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct BoundMethod {
+	
+	@abstract: A method applied on a subject.
+	
+	derived type init(for MethodType: Method.Type)
+	
+	derived init(method: Method, subject: MethodType.Subject)
+	
+	type let MethodType: Method.Type
+	
+	let method: MethodType {
+		@abstract: The method that is bound.
+	}
+	
+	let subject: MethodType.Subject {
+		@abstract: The subject that the method is bound to.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+extension BoundMethod : Functor {
+	
+	derived implicit init<Submethod : BoundMethod>(_ submethod: Submethod) where Self.Argument <: Submethod.Argument, Submethod.Result <: Self.Result, Self.failable --> Submethod.failable
+	
+	type let Argument = Subject
+	
+	type let Result = BoundMethod<on: Subject, from: MethodArgument, to: MethodResult, throws: failable>
+	
+	native func map(_ subject: Subject) throws[if: failable] -> Result
+	
+}

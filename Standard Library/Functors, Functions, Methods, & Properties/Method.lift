@@ -1,0 +1,59 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct Method {
+	
+	@abstract: A function defined on a type.
+	@details {
+		
+		A method is a function `method` with arguments `arguments` that is called on a value `subject` like this: `subject.method(arguments)`.
+		
+		Methods do not provide any expressive power beyond that of ordinary functions, but they improve the legibility of code by moving the subject of a function to a privileged location.
+		
+		Methods are nested functors that take a subject as argument and produce a bound method. A bound method is a functor that takes the actual method argument and produces the method's result. Or, more formally stated,
+		* every unfailable `Method<on: Subject, from: Argument, to: Result>` is a functor `Subject -> Argument -> Result` and
+		* every failable `Method<on: Subject, from: Argument, to: Result, throws: true>` is a functor `Subject -> Argument throws -> Result`.
+		
+		Since every method is a functor, a method cannot have side-effects or call into subroutines.
+		
+	}
+	
+	derived type init(on Subject: Any.Type, from MethodArgument: Any.Type, to MethodResult: Any.Type, throws failable: Bool)
+	
+	type let Subject: Any.Type {
+		@abstract: The type of values on which the method is defined.
+	}
+	
+	type let MethodArgument: Any.Type {
+		@abstract: The type of values a bound method takes.
+	}
+	
+	type let MethodResult: Any.Type {
+		@abstract: The type of values a bound method produces.
+	}
+	
+	type let failable: Bool {
+		@abstract: Whether the bound method may fail.
+	}
+	
+	let symbol: Symbol {
+		@abstract: The symbol of the method.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+extension Method : Functor {
+	
+	derived implicit init<Submethod : Method>(_ submethod: Submethod) where Self.Argument <: Submethod.Argument, Submethod.Result <: Self.Result, Self.failable --> Submethod.failable
+	
+	type let Argument = Subject
+	
+	type let Result = BoundMethod<for: Self>
+	
+	func map(_ subject: Subject) throws[if: failable] -> Result {
+		return BoundMethod(method: self, subject: subject)
+	}
+	
+}

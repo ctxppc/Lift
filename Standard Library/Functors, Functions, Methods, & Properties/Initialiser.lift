@@ -1,0 +1,47 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct Initialiser {
+	
+	@abstract: A function that initialises the state of a newly created value.
+	@discussion {
+		
+		An initialiser is similar to a method in that it is defined on a type and that is it invoked with the subject value as an automatic argument. However, there are special restrictions not found in methods.
+		
+		The subject value is considered uninitialised until all properties have been assigned a valid value. Until that stage, the subject value cannot escape the scope of the initialiser; this also includes implicit escapes like invoking a method on the value or accessing a computed property. Initialisers must assign a value to constant properties (i.e., `let`) exactly once.
+		
+		Before an initialiser finishes, it must either finish initialisation by assigning all stored properties or *delegate* by invoking another initialiser on the type. When another initialiser is invoked, the value is uninitialised before the next initialiser runs.
+		
+		All initialisers have the special symbol `init`. Unlike methods, an initialiser cannot be bound to a value (i.e., `subject.init`). Invoking an initialiser on `self` (i.e., `self.init(…)`) is only allowed within an initialiser and as the last statement of a code path; nothing is executed after the delegation call.
+		
+		Initialisers may be failable; when an error is thrown, the value is uninitialised. Initialisers do not produce a value.
+		
+		Every initialiser is a functor `Argument -> Subject`. An initialiser on a type `T` can be retrieved as `T.init`.
+		
+	}
+	
+	type let Subject: Any.Type {
+		@abstract: The type whose values are initialised.
+	}
+	
+	type let Argument: Any.Type {
+		@abstract: The type of values the initialiser takes.
+	}
+	
+	type let failable: Bool {
+		@abstract: Whether the initialiser may fail.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+extension Initialiser : Functor {
+	
+	derived implicit init<Subinitialiser : Method>(_ submethod: Subinitialiser) where Self.Argument <: Subinitialiser.Argument, Subinitialiser.Result <: Self.Result, Self.failable --> Subinitialiser.failable
+	
+	type let Result = Subject
+	
+	native func map(_ subject: Subject) throws[if: failable] -> Subject
+	
+}

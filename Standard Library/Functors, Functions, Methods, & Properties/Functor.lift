@@ -1,0 +1,74 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+protocol Functor {
+	
+	@abstract: A value that maps a number of values of some types to a value of another type.
+	@details {
+		
+		A functor is in essence a generalised pure function. They express, in most general terms, the mapping of values of type `Arguments` to values of type `Result` — without associating a concrete implementation detail. It's recommended to take a functor value instead of a function value whenever a pure function is expected.
+		
+		# Failability
+		
+		A functor can be failable. Failable functors may fail to produce a result value, and instead produce an error. The general guideline is to throw an error when a condition has occurred that prevents a value from being produced but where the functor's preconditions or invariants are still met. Division by zero is forbidden by a precondition and should therefore not produce an error; instead the division operation should raise a precondition failure (which immediately terminates the current agent). However, parsing an integer from a string should fail with an error because parsing also involves detecting strings not conforming to the grammar, which is a valid use case of parsing.
+		
+		# Notation
+		
+		A unfailable functor type can be written as `Functor<from: Argument, to: Result>` but also `Argument -> Result`. The arrow, when the type is read left-to-right, indicates the *processing* or *mapping* of a value of the left type to a value of the right type. A failable functor type can be written as `Functor<from: Argument, to: Result, throws: true>` but also `Argument throws -> Result`. The `throws` just before the arrow indicates that an error can occur before a value is produced. The `->` (and `throws ->`) type operator is right-associative type: `A -> B -> C` is the same as `A -> (B -> C)` and expresses a functor whose result is a functor `B -> C`.
+		
+		# Applying
+		
+		A functor can be applied to an argument by wrapping the argument in parentheses and juxtaposing it with the functor. This expression resolves to a result value. That is, given a functor `f : Argument -> Result` and an argument `a : Argument`, `f(a)` evaluates to a value of type `Result`. If the functor is failable, the expression or any superexpression must be prepended with the keyword `try`, e.g. `let result = try f(a)`.
+		
+		# Conformance
+		
+		Every type that has a well-defined, unique “mapping” semantic (like functions) can conform to this protocol by adopting this protocol.
+		
+		Several types from the standard library are functors:
+		* A function `Function<from: Argument, to: Result>` is an `Argument -> Result`. (Analogous for failable functions.)
+		* An initialiser `Initialiser<for: Type, from: Argument>` is an `Argument -> Type`. (Analogous for failable initialisers.)
+		* An immutable, unfailable method `Method<on: Subject, from: Argument, to: Result, throws: false>` is a `Subject -> Argument -> Result`.
+		* An immutable, failable method `Method<on: Subject, from: Argument, to: Result, throws: true>` is a `Subject -> Argument throws -> Result`.
+		* A property `Property<on: Subject, typed: Value>` is a `Subject -> Value`.
+		* An immutable, unfailable subscriptor `Subscriptor<on: Subject, index: Index, value: Value, throws: false>` is a `Subject -> Index -> Value`.
+		* An immutable, failable subscriptor `Subscriptor<on: Subject, index: Index, value: Value, throws: true>` is a `Subject -> Index throws -> Value`.
+		* An `Identity<Value>` is a *endo*functor `Value -> Value` that just produces its argument.
+		* A `Constant<Value>` is a *constant* functor `T -> Value` that takes any value of type `T` and produces a `Value` given during initialisation of the `Constant`. The argument is ignored.
+		
+		Mutators and mutable methods are not functors because they require a scope where side-effects can be applied. Subroutines are not functors because their side-effects are unknown. Functors are guaranteed to be side-effect free.
+		
+	}
+	
+	implicit init<Subfunctor ~ Self>(_ subfunctor: Subfunctor) where Self.Argument <: Subfunctor.Argument, Subfunctor.Result <: Self.Result, Self.failable --> Subfunctor.failable {
+		@abstract: Implicitly converts a functor of type `Subfunctor` to a value of type `Self`.
+		@details {
+			
+			Functors are contravariant on the argument type and covariant on the result type. As an example, consider two related types `Animal <: Cat` and a type `Name`.
+			* Wherever a functor `Cat -> Name` is requested, a functor `Animal -> Name` can be provided.
+			* Wherever a functor `Name -> Animal` is requested, a functor `Name -> Cat` can be provided.
+			
+			In addition, wherever a failable functor `A throws -> B` is requested, a functor `A -> B` can be given.
+			
+			This initialiser preserves the second-order type. For example, a method can't become a function or vice versa.
+			
+		}
+	}
+	
+	type let Argument: Any.Type {
+		@abstract: The type of the values the functor accepts, also known as the functor's domain.
+	}
+	
+	type let Result: Any.Type {
+		@abstract: The type of the values the functor produces, also known as the functor's image.
+	}
+	
+	type let failable: Bool {
+		@abstract: Whether the functor may fail.
+	}
+	
+	func map(_ argument: Argument) throws[if: failable] -> Result {
+		@abstract: Maps an argument to a result.
+	}
+	
+}

@@ -1,0 +1,40 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct Tuple {
+	
+	@abstract: A value of a structured product type.
+	@details {
+		
+		Tuples are a compact way to put different related values together in one value, without explicitly defining a structure type. A prime usage for them are as results of functions returning multiple values, e.g., a function `bounds(of numbers: [Int]) -> (min: Int, max: Int)` which efficiently finds the smallest and largest number in one pass and returns them in a tuple of type `(min: Int, max: Int)`.
+		
+		Tuple types are almost always defined using the shorthand form `(label1: Type1, label2: Type2, …)`. Every comma-separated item is an **element** of the tuple type and carries an optional label. Some or all elements can also be unlabelled when their meaning is clear from the context, e.g., `(String, length: Int)`.
+		
+		Tuples are almost always written using the similar shorthand form `(label1: value1, label2: value2, …)`. The label must be included for every value of a labelled element; no label may be associated with a value of an unlabelled element. As an example, for the tuple type `(String, age: Int)`, a valid tuple can be written as `("some string", age: 25)`. For brevity, if the value for a labelled element is a constant or variable with the same name as the label, the label may be omitted. Using the same example `(String, age: Int)` and given an variable `age: Int`, a valid tuple can be written as `("some string", age)`.
+		
+		Note that in the function type shorthand `(argument1: Type1, argument2: Type2, …) -> Result`, the parameter list between parentheses is *not* a tuple type. This is because function parameters can have different call-site labels and can be decorated with function-specific attributes such as `inout` or `shared`. Tuple types can be used within parameters with an additional layer of parentheses, e.g., `(tuple: (String, age: Int)) -> Result`; the elements within that tuple cannot be decorated with function-specific attributes and cannot have different call-site labels. See `Function` for more information about function shorthand notation.
+		
+		Tuple types are treated specially by the compiler in that tuple types carry an optional label with every component which are used to derive members. The compiler automatically derives a property for every element in the tuple type. Every element can be accessed using its ordinal, starting with `0` for the first element. In addition, every labelled element can be accessed using its label. For example, a value of `(String, score: Int)` has three properties `0: String`, `1: Int`, and `score: Int` with `1` and `age` accessing the same element. Tuples can have duplicate labels but the compiler does not derive properties using these labels. To access any element with the same label as another element, the derived ordinal properties must be used.
+		
+		The tuple type with zero elements contains exactly one value, the **unit value**. Functions with side-effects that have no useful results to return, return the unit value. The unit tuple type is written as `()` as is its unit value.
+		
+	}
+	
+	derived type init(of Elements: Array<of: Any.Type>, labels: Array<of: String?>) where labels.count == Components.count
+	
+	type let Elements: Array<of: Any.Type> {
+		@abstract: The types of the individual elements.
+	}
+	
+	type let labels: Array<of: String?> where labels.count == Components.count {
+		@abstract: The labels of the individual elements.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+native extension Tuple : Comparable where Tuple.Elements : Comparable
+
+@available(from: Lift 1.0)
+native extension Tuple : Hashable where Tuple.Elements : Hashable

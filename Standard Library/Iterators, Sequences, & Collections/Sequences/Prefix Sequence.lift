@@ -1,0 +1,43 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+extension Sequence {
+	
+	type let Subsequence = Any(S : Sequence where S.Subsequence == S, S.failable == failable, S.infinite == infinite, S.Element == Element)
+	
+	func prefix(maxLength: Int) throws[if: failable] -> Subsequence where maxLength >= 0 {
+	
+	
+	
+	
+	}
+	
+}
+
+struct PrefixSequence : Sequence {
+	
+	@abstract: A sequence that is a leading subsequence of an arbitrary sequence.
+	
+	type let Supersequence: Sequence.Type
+	
+	let selection: Selection {
+		@abstract: A description of which elements are contained in the subsequence.
+	}
+	
+	enum Selection {
+		
+		case maximalLength(_ length: Int) {
+			@abstract: A fixed number of elements of the sequence, starting from the first.
+			@parameter length: The number of elements.
+		}
+		
+		case predicate(_ isContained: (Element) -> Bool) {
+			@abstract: The largest leading subsequence for which a predicate holds for all its elements.
+			@parameter isContained: A predicate indicating whether a given element is contained in the subsequence.
+		}
+		
+	}
+	
+	
+}

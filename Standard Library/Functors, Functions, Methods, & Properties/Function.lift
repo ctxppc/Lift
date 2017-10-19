@@ -1,0 +1,24 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+struct Function : Functor {
+	
+	@abstract: A value that consists of a sequence of operations that transform an argument into a value.
+	@details: Since every function is a functor, a function cannot have side-effects or call into subroutines.
+	
+	derived type init(from Argument: Any.Type, to Result: Any.Type, throws: Bool = false)
+	
+	derived implicit init<Subfunction : Function>(_ subfunction: Subfunction) where Self.Argument <: Subfunction.Argument, Subfunction.Result <: Self.Result, Self.failable --> Subfunction.failable
+	
+	type let Argument: Any.Type
+	type let Result: Any.Type
+	type let failable: Bool
+	
+	let symbol: Symbol {
+		@abstract: The symbol of the function.
+	}
+	
+	native func map(_ argument: Argument) throws[if: failable] -> Result
+	
+}

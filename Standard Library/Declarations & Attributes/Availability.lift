@@ -1,0 +1,26 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+// @available(from: Lift 1.0)	This attribute is to be assumed, but cannot be used here as it is self-referential.
+struct Availability : DeclarationAttribute {
+	
+	type let symbol: Symbol = "available"
+	
+	type let declarationTypes: Set<of: DeclarationKind> = [.type, .method, .function, .property]
+	
+	derived init(in module: Module, from initialVersion: SemanticVersion)
+	derived init(in module: Module, from initialVersion: SemanticVersion, deprecated deprecationVersion: SemanticVersion) where initialVersion <= deprecationVersion
+	
+	let module: Module {
+		@abstract: The module on which the declaration is defined.
+	}
+	
+	let initialVersion: SemanticVersion {
+		@abstract: The first version in which the declaration has been published.
+	}
+	
+	let deprecationVersion: SemanticVersion? {
+		@abstract: The first version in which the declaration has been deprecated.
+	}
+	
+}

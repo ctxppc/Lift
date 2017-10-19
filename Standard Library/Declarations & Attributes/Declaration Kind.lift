@@ -1,0 +1,12 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+enum DeclarationKind {
+	case type
+	case method
+	case function
+	case property
+}
+
+derived extension DeclarationKind : Hashable

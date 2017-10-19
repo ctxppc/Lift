@@ -1,0 +1,26 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+// @available(from: Lift 1.0)	This attribute is to be assumed, but cannot be used here as it is cyclic-referential (via Availability).
+protocol DeclarationAttribute {
+	
+	@abstract: A value that is attached to a Lift declaration.
+	@details {
+		
+		A declaration attribute value looks like `@someattribute(argument1: value1, argument2: value, …)`. The symbol of the attribute immediately follows the `@` sign, and following it is an argument list that is forwarded to one of the attribute's initialisers. If multiple attributes declare the same symbol, the compiler considers all candidates during type inferencing.
+		
+		The standard library defines several attributes which are understood natively by the Lift compiler. All attributes are made available in the module index (e.g., for scanners or processors of Lift modules) and via reflection (e.g., for runtime libraries).
+		
+		See also: [Documentation Attribute](Documentation Attribute.lift)
+		
+	}
+	
+	type let symbol: Symbol {
+		@abstract: The symbol of the attribute.
+	}
+	
+	type let declarationKinds: Set<of: DeclarationKind> {
+		@abstract: The kinds of declaration on which the attribute can be applied.
+	}
+	
+}

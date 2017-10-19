@@ -1,0 +1,69 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+
+@available(from: Lift 1.0)
+protocol Sequence {
+	
+	@abstract: A type that provides sequential, iterated access to its elements.
+	
+	@invariant: Any two iterators from the same sequence produce the same elements, in the same order.
+	
+	type let Element: Any.Type {
+		@abstract: The type of the sequence's elements.
+	}
+	
+	type let failable: Bool = false {
+		@abstract: Whether the sequence may fail during iteration.
+	}
+	
+	type let infinite: Bool = false {
+		@abstract: Whether the sequence is known to be infinite in all cases.
+	}
+	
+	type let IteratorType: Iterator.Type where 
+		IteratorType.Element == Element, 
+		IteratorType.failable == failable, 
+		IteratorType.infinite == infinite {
+		@abstract: The type of the sequence's iterators.
+	}
+	
+	func makeIterator() throws[if: failable] -> IteratorType {
+		@abstract: Returns an iterator over the sequence's elements.
+		@throws: An error if the iterator can't be created.
+		@returns: An iterator over the sequence's elements.
+	}
+	
+	type let Subsequence: Sequence.Type where 
+		Subsequence.Subsequence == Subsequence, 
+		Subsequence.failable == failable, 
+		Subsequence.infinite == infinite, 
+		Subsequence.Element == Element {
+		@abstract: The type of contiguous subsequences of the sequence.
+	}
+	
+	func prefix(maxLength: Int) throws[if: failable] -> Subsequence where maxLength >= 0 {
+		@abstract: Returns a subsequence, up to a specified maximum length, containing the initial elements of the sequence.
+		@throws: An error if the iterator can't be created or if it throws an error during iteration.
+		@returns: A subsequence starting at the beginning of `self` with at most `maxLength` elements.
+	}
+	
+	func prefix(while predicate: (Element) throws -> Bool) throws[if: failable] rethrows -> Subsequence {
+		@abstract: Returns a subsequence containing the initial, consecutive elements that satisfy the given predicate.
+		@parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be included in the result.
+		@throws: An error if the iterator can't be created or if it throws an error during iteration.
+		@returns: A subsequence of the initial, consecutive elements in `self` that satisfy `predicate`.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+extension Sequence where Iterator == Self {
+	
+	func makeIterator() -> Self {
+		return self
+	}
+	
+}
+
+
+
