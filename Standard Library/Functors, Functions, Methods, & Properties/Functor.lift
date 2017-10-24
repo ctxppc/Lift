@@ -51,3 +51,18 @@ protocol Functor {
 	}
 	
 }
+
+extension Functor {
+	derived existential type init(from Argument: Any.Type, to Result: Any.Type, throws failable: Bool)
+}
+
+type operator class FunctorOperator {
+	@abstract: The functor operator.
+	strongerThan: ProductOperator
+	associates: right
+}
+
+type operator -> : FunctorOperator
+type operator throws -> : FunctorOperator
+
+type operator func -> (Argument: Any.Type, Result: Result.AnyType) -> Functor
