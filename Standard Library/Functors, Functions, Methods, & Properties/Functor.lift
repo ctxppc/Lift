@@ -53,16 +53,16 @@ protocol Functor {
 }
 
 extension Functor {
-	derived existential type init(from Argument: Any.Type, to Result: Any.Type, throws failable: Bool)
+	derived existential type init(from Argument: Any.Type, to Result: Any.Type, throws failable: Bool = false)
 }
 
-type operator class FunctorOperator {
-	@abstract: The functor operator.
-	strongerThan: ProductOperator
+operator class Applicative {
+	strongerThan: Multiplicative
 	associates: right
 }
 
-type operator -> : FunctorOperator
-type operator throws -> : FunctorOperator
+infix operator -> : Applicative
+infix operator throws -> : Applicative
 
-type operator func -> (Argument: Any.Type, Result: Result.AnyType) -> Functor
+derived infix type operator func -> (Argument: Any.Type, Result: Any.Type) -> Functor<from: Argument, to: Result>
+derived infix type operator func throws -> (Argument: Any.Type, Result: Any.Type) -> Functor<from: Argument, to: Result, throws: true>

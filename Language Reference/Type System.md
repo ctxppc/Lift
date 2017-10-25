@@ -166,7 +166,7 @@ A type initialiser without (required) arguments can be invoked without `<argumen
 	
 	let count: Int
 
-A **first-order type parameter** is a type parameter whose arguments are values. A **second-order type parameter** is a type parameter whose arguments are types. In `Vector`, `length` is a first-order parameter and `Element` a second-order one. Conventially, identifiers of type definitions and second-order type parameters are capitalised whereas identifiers of constants, variables, cases, functions, methods, and first-order parameters are not.
+A **first-order type parameter** is a type parameter whose arguments are values. A **second-order type parameter** is a type parameter whose arguments are types. In `Vector`, `length` is a first-order parameter and `Element` a second-order one. Conventionally, identifiers of type definitions and second-order type parameters are capitalised whereas identifiers of constants, variables, cases, functions, methods, and first-order parameters are not.
 
 ### `Self`
 The special `Self` type within a type definition refers to the current type, with all the currently assigned type arguments.
