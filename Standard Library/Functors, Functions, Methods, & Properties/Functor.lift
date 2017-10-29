@@ -4,7 +4,7 @@
 @available(from: Lift 1.0)
 protocol Functor {
 	
-	@abstract: A value that maps a number of values of some types to a value of another type.
+	@abstract: A value that takes an argument and produces a result; a mapping from values of one type to values of another type.
 	@details {
 		
 		A functor is in essence a generalised pure function. They express, in most general terms, the mapping of values of type `Arguments` to values of type `Result` — without associating a concrete implementation detail. It's recommended to take a functor value instead of a function value whenever a pure function is expected.

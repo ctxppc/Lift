@@ -1,5 +1,5 @@
 # The type system
-Lift's main focus of improvement over many other languages is the type system. It's designed to remain minimally present in code yet to be deeply immersed in the meaning of the code. The type system tries to contain as much static information as it can in every variable of the program. This can be as simple as a simple type (e.g., `Int` for integers) to as advanced as a constructed dependent type (e.g., `Vector<of: String, length: 6>` for a list of 6 strings). This section summarily discusses values and types in the Lift type system.
+Lift's main focus of improvement over many other languages is the type system. It's designed to remain minimally present in code yet to be deeply immersed in the meaning of the code. The type system tries to contain as much static information as it can in every variable of the program. This can be as simple as a simple type (e.g., `Int` for integers) to as advanced as a constructed dependent type (e.g., `Vector<of: String, length: 6>` for a list of 6 strings). This section summarily discusses values, types, and kinds in the Lift type system.
 
 ## Values
 ### Constants

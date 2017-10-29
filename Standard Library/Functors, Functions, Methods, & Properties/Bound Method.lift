@@ -34,3 +34,7 @@ extension BoundMethod : Functor {
 	native func map(_ subject: Subject) throws[if: failable] -> Result
 	
 }
+
+infix operator func . <Subject, Argument, Result, failable> (subject: Subject, method: Method<on: Subject, from: Argument, to: Result, throws: failable>) -> BoundMethod<for: Method<on: Subject, from: Argument, to: Result, throws: failable>> {
+	return BoundMethod(method: method, subject: subject)
+}
