@@ -1,5 +1,5 @@
 @author: Constantino Tsarouhas
-@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+@copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
 protocol Collection : Sequence {

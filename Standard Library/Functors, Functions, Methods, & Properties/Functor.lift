@@ -1,5 +1,5 @@
 @author: Constantino Tsarouhas
-@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+@copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
 protocol Functor {
@@ -7,7 +7,7 @@ protocol Functor {
 	@abstract: A value that takes an argument and produces a result; a mapping from values of one type to values of another type.
 	@details {
 		
-		A functor is in essence a generalised pure function. They express, in most general terms, the mapping of values of type `Arguments` to values of type `Result` — without associating a concrete implementation detail. It's recommended to take a functor value instead of a function value whenever a pure function is expected.
+		A functor is in essence a generalised pure function. They express, in general terms, the mapping of values of type `Arguments` to values of type `Result`. It's recommended to take a functor value instead of a function value wherever a pure function is expected.
 		
 		A functor can be failable. Failable functors may fail to produce a result value, and instead produce an error. The general guideline is to throw an error when a condition has occurred that prevents a value from being produced but where the functor's preconditions or invariants are still met. Division by zero is forbidden by a precondition and should therefore not produce an error; instead the division operation should raise a precondition failure (which immediately terminates the current agent). However, parsing an integer from a string should fail with an error because parsing also involves detecting strings not conforming to the grammar, which is a valid use case of parsing.
 		
@@ -19,7 +19,7 @@ protocol Functor {
 		
 	}
 	
-	implicit init<Subfunctor ~ Self>(_ subfunctor: Subfunctor) where Self.Argument <: Subfunctor.Argument, Subfunctor.Result <: Self.Result, Self.failable --> Subfunctor.failable {
+	implicit init<Subfunctor>(_ subfunctor: Subfunctor) where Subfunctor ~ Self, Self.Argument <: Subfunctor.Argument, Subfunctor.Result <: Self.Result, Self.failable --> Subfunctor.failable {
 		@abstract: Implicitly converts a functor of type `Subfunctor` to a value of type `Self`.
 		@details {
 			
@@ -34,8 +34,8 @@ protocol Functor {
 		}
 	}
 	
-	type let Argument: Any.Type {
-		@abstract: The type of the values the functor accepts, also known as the functor's domain.
+	type let Arguments: Array<of: FunctorArgument.Type> where !Arguments.containsRepeatedOccurrences(groupingBy: .symbol) {
+		@abstract: The arguments taken by the functor.
 	}
 	
 	type let Result: Any.Type {
@@ -56,13 +56,13 @@ extension Functor {
 	derived existential type init(from Argument: Any.Type, to Result: Any.Type, throws failable: Bool = false)
 }
 
-operator class Applicative {
+operator class Transformative {
 	strongerThan: Multiplicative
-	associates: right
+	associativity: right
 }
 
-infix operator -> : Applicative
-infix operator throws -> : Applicative
+infix operator -> : Transformative
+infix operator throws -> : Transformative
 
-derived infix type operator func -> (Argument: Any.Type, Result: Any.Type) -> Functor<from: Argument, to: Result>
-derived infix type operator func throws -> (Argument: Any.Type, Result: Any.Type) -> Functor<from: Argument, to: Result, throws: true>
+derived infix type operator func -> (Argument: Any.Type, Result: Any.Type) -> Functor<from: Argument, to: Result>.Type
+derived infix type operator func throws -> (Argument: Any.Type, Result: Any.Type) -> Functor<from: Argument, to: Result, throws: true>.Type

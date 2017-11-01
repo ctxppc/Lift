@@ -1,0 +1,22 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 Lift Language Project
+
+struct FunctorArgument {
+	
+	derived type init(symbol: Symbol?, type Value: Any.Type)
+	
+	type let symbol: Symbol? {
+		@abstract: The symbol of the functor parameter, if any.
+	}
+	
+	type let Value: Any.Type {
+		@abstract: The type of the arguments.
+	}
+	
+	derived init(value: Value)
+	
+	let value: Value {
+		@abstract: The argument.
+	}
+	
+}

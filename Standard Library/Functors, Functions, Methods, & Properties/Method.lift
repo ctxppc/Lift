@@ -1,13 +1,13 @@
 @author: Constantino Tsarouhas
-@copyright: Lift Standard Library © 2017 The Imaginary Lift Committee
+@copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
 struct Method {
 	
-	@abstract: A functor defined on a type.
+	@abstract: A function defined on a type.
 	@details {
 		
-		A method is a function `method` with arguments `arguments` that is called on a value `subject` like this: `subject.method(arguments)`.
+		A method is a function `method` with arguments `arguments` that is called on a value `subject` like this: `subject.method(arguments)`. Methods do not provide any expressive power beyond that of ordinary functions, but they improve the legibility of code by moving the subject of a function to a privileged location; for example, `let sortedList = list.sorted()` instead of `let sortedList = sort(list)`.
 		
 		A method is defined with a method definition within a type definition. For example,
 		
@@ -19,25 +19,13 @@ struct Method {
 		
 		The subject value is accessible in the method through the contextual symbol `self`.
 		
-		# Mutating vs. nonmutating methods
+		A method can be mutating or nonmutating. A nonmutating method is written as above; the value `self` is constant.
 		
-		A method can be mutating or nonmutating. A nonmutating method is written as above; the value `self` is constant. A mutating method is declared with the `mutating` modifier; the value `self` is variable.
-		
-		Nonmutating methods do not provide any expressive power beyond that of ordinary functions, but they improve the legibility of code by moving the subject of a function to a privileged location; for example, `let sortedList = list.sorted()` instead of `let sortedList = sort(list)`.
-		
-		Mutating method can only invoked on variable subject values; when the method returns, the subject variable in the calling context is reassigned to the (potentially different) value.
+		A mutating method is declared with the `mutating` modifier; the value `self` is variable. Any changes to `self` are reassigned to the subject value in the calling context. Therefore, the subject of a mutating method must be variable in the calling context.
 		
 			var name = "John Appleseed"
 			name.replacingOccurrences(of: " ", with: "\t")
 			// name == "John	Appleseed"
-		
-		# Nonmutating methods as functors
-		
-		Nonmutating methods are nested functors that take a subject as argument and produce a bound method. A bound method is a functor that takes the actual method argument and produces the method's result. Or, more formally stated,
-		* every nonmutating, unfailable `Method<on: Subject, from: Argument, to: Result>` is a functor `Subject -> Argument -> Result` and
-		* every nonmutating, failable `Method<on: Subject, from: Argument, to: Result, throws: true>` is a functor `Subject -> Argument throws -> Result`.
-		
-		Since a functor cannot have side-effects, mutating methods are not functors.
 		
 	}
 	
@@ -47,24 +35,25 @@ struct Method {
 		@abstract: The type of values on which the method is defined.
 	}
 	
+	type let MethodArguments: Array<of: FunctorArgument.Type> {
+		@abstract: The type of arguments taken by methods.
+	}
+	
+	type let Arguments = mutating ? (inout Subject ++ MethodArguments) : (Subject ++ MethodArguments)
+	
+	type let Result: Any.Type
+	
 	type let mutating: Bool {
 		@abstract: Whether the method can mutate the subject value in-place.
-	}
-	
-	type let MethodArgument: Any.Type {
-		@abstract: The type of values a bound method takes.
-	}
-	
-	type let MethodResult: Any.Type {
-		@abstract: The type of values a bound method produces.
 	}
 	
 	type let failable: Bool {
 		@abstract: Whether the bound method may fail.
 	}
 	
-	let symbol: Symbol {
-		@abstract: The symbol of the method.
+	native let implementation: Implementation {
+		@abstract: The implementation of the method.
+		@details: The compiler (…).
 	}
 	
 }
@@ -72,14 +61,19 @@ struct Method {
 @available(from: Lift 1.0)
 extension Method : Functor where !mutating {
 	
-	derived implicit init<Submethod : Method>(_ submethod: Submethod) where Self.Argument <: Submethod.Argument, Submethod.Result <: Self.Result, Self.failable --> Submethod.failable
-	
-	type let Argument = Subject
-	
-	type let Result = BoundMethod<for: Self>
-	
-	func map(_ subject: Subject) throws[if: failable] -> Result {
-		return BoundMethod(method: self, subject: subject)
+	@abstract: Every immutable method is a functor that takes the subject value as first argument.
+	@details {
+		
+		Nonmutating methods are functors that take a subject as first argument, followed by the method arguments, and produce the method's result. Or, more formally stated,
+		* every nonmutating, unfailable method `Method<on: Subject, from: Arguments, to: Result>` is a functor `(Subject ++ Arguments) -> Result`, and
+		* every nonmutating, failable method `Method<on: Subject, from: Argument, to: Result, throws: true>` is a functor `(Subject ++ Arguments) throws -> Result`.
+		
+		Mutating methods require a variable context and thus are not functors.
+		
 	}
+	
+	type let Arguments = Subject ++ MethodArguments
+	
+	derived implicit init<Submethod : Method>(_ submethod: Submethod) where Self.Argument <: Submethod.Argument, Submethod.Result <: Self.Result, Self.failable --> Submethod.failable {
 	
 }

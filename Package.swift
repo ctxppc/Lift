@@ -1,5 +1,5 @@
 // swift-tools-version:4.0
-// Lift © 2017 The Imaginary Lift Committee
+// Lift © 2017 Lift Language Project
 
 import PackageDescription
 

@@ -1,4 +1,4 @@
-// Lift © 2017 The Imaginary Lift Committee
+// Lift © 2017 Lift Language Project
 
 import Foundation
 import DepthKit
