@@ -2,7 +2,7 @@
 @copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
-struct Initialiser {
+protocol Initialiser : Function {
 	
 	@abstract: A function that initialises the state of a newly created value.
 	@discussion {
@@ -29,19 +29,17 @@ struct Initialiser {
 		@abstract: The type of values the initialiser takes.
 	}
 	
+	type let Result = Subject {
+		@abstract: The results of the initialiser as a function.
+	}
+	
 	type let failable: Bool {
-		@abstract: Whether the initialiser may fail.
+		@abstract: A Boolean value indicating whether the initialiser may throw an error instead of initialising a new value.
 	}
 	
 }
 
 @available(from: Lift 1.0)
-extension Initialiser : Functor {
-	
-	derived implicit init<Subinitialiser : Initialiser>(_ submethod: Subinitialiser) where Self.Argument <: Subinitialiser.Argument, Subinitialiser.Result <: Self.Result, Self.failable --> Subinitialiser.failable
-	
-	type let Result = Subject
-	
-	native func map(_ subject: Subject) throws[if: failable] -> Subject
-	
+extension Initialiser {
+	derived existential type init(of Subject: Any.Type, from Argument: Any.Type = (), throws failable: Bool = false)
 }

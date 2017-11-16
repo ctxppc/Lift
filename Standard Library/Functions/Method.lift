@@ -1,0 +1,137 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 Lift Language Project
+
+@available(from: Lift 1.0)
+protocol Method : Function {
+	
+	@abstract: A function defined on a type.
+	@details {
+		
+		A method is a function `method` with arguments `arguments` that is called on a value `subject` like this: `subject.method(arguments)`. Methods do not provide any expressive power beyond that of ordinary functions, but they improve the legibility of code by moving the subject of a function to a privileged location; for example, `let sortedList = list.sorted()` instead of `let sortedList = sorted(list)`.
+		
+		A method is defined with a method definition within a type definition. For example,
+		
+			struct List {
+				func sorted() -> List {
+					…
+				}
+			}
+		
+		The subject value is accessible in the method through the contextual symbol `self`.
+		
+		# Bound methods
+		
+		A method `Method<on: Subject, from: Argument, to: Result>` is a function `Subject -> Argument -> Result`. Before a method can be applied on its arguments, it must be applied on a subject. Applying a method on a subject is called **binding** the method (to a subject), and produces a bound method, which is a function `Argument -> Result`.
+		
+		To get a method `method` defined on a type `Subject` without binding it, write `Subject.method`. To get a method `method` bound to a value `subject`, write `subject.method`.
+		
+		Method symbols are members of the global symbol scope, so a method `method` can be referenced anywhere with `method`. In many cases, however, the symbol will have multiple matching methods (and even other values) which is why `Subject.method` is the idiomatic way to reference (unbound) methods. (The `.` operator doesn't do anything special here, it simply forces a specific `Subject` on the type system.)
+		
+		# Failable methods
+		
+		Just like functions, a method can be failable or unfailable. An failable method `Method<on: Subject, from: Argument, to: Result, throws: true>` is a function `Subject -> Argument throws -> Result` (binding never throws an error). A failable method must be invoked in a `try` expression, e.g., `let result = file.binaryData(endianness: .little)`.
+		
+		# Mutating methods
+		
+		A method can be declared with the `mutating` keyword, making the method *mutating*. In a mutating method definition, the contextual symbol `self` is variable meaning that the method can modify the subject in-place, instead of producing a copy of it. A mutating method can only be invoked on variables (not constants).
+		
+			struct List {
+				mutating func sort() {
+					…
+				}
+			}
+			
+			var list = [1, 3, 2]
+			list.sort()
+			// list == [1, 2, 3]
+		
+		Mutating method calls are purely syntactical sugar; Lift doesn't support functions with side effects. A mutating method `Method<on: Subject, from: Argument, to: Result, mutating: true>` is actually a pure function `Subject -> Argument -> (newValue: Subject, result: Result)`. The form `let result = subject.method(argument)` (with binding and argument application in the same expression) is rewritten as `(subject, let result) = subject.method(argument)` where `method` is a function.
+		
+		# Conformance to this protocol
+		
+		The Lift compiler automatically creates concrete types for each method definition that conform to this protocol. The `sorted` method above is compiled as if the following was written:
+		
+			struct sorted : Method {
+				type let Argument = List
+				type let Result = () -> List
+				func result(for list: List) -> () -> List { … }
+			}
+		
+		Type parameters in a method definition are compiled as type parameters in the corresponding type definition. For example, a `func adding<N : Numeric>(_ n: N) -> Int` defined on `Int` is compiled as if the following was written:
+		
+			struct adding : Method {
+				derived type init(N: Any.Type)
+				type let N = N.Type
+				type let Argument = Int
+				type let Result = N -> Int
+				func result(for integer: Int) -> N -> Int { … }
+			}
+		
+		Other types can add conformance to `Method`, but this is not commonly done.
+		
+	}
+	
+	type let Subject: Any.Type {
+		@abstract: The values that can be bound to methods of this type; the type on which the method is defined.
+	}
+	
+	type let MethodArgument: Any.Type {
+		@abstract: The values taken by *bound* methods of this type.
+	}
+	
+	type let MethodResult: Any.Type {
+		@abstract: The values produced by *bound* methods of this type.
+	}
+	
+	type let mutating: Bool {
+		@abstract: A Boolean value indicating whether the method can mutate the subject in-place.
+		@discussion: As a function, a bound mutating method returns a pair `(newValue: Subject, result: MethodResult)`.
+	}
+	
+	type let failable: Bool {
+		@abstract: A Boolean value indicating whether bound methods produced from methods of this type may throw an error instead of producing a value.
+	}
+	
+	type let BoundMethod: Function.Type where 
+		BoundMethod.Argument == MethodArgument, 
+		BoundMethod.Result == (mutating ? (newValue: Subject, result: MethodResult) : MethodResult)
+		BoundMethod.failable == failable {
+		
+		@abstract: The bound methods, which are the result of applying a subject to instances of this type.
+		
+	}
+	
+	type let Argument = Subject {
+		@abstract: The arguments of the method as a function, which are instances of the subject type.
+	}
+	
+	type let Result = BoundMethod {
+		@abstract: The results of the method as a function, which are bound methods.
+	}
+	
+}
+
+@available(from: Lift 1.0)
+extension Method {
+	derived existential type init(on Subject: Any.Type, from Argument: Any.Type, to Result: Any.Type, mutating: Bool, throws failable: Bool)
+}
+
+@available(from: Lift 1.0)
+infix operator func . <M : Method> (_: M.Subject.Type, method: M) -> M {
+	
+	@abstract: Returns given method.
+	@details: To get a method `method` defined on a type `Subject`, write `Subject.method`. `Subject.method(subject)` is equivalent to `method(subject)` and `subject.method`.
+	
+	return method
+	
+}
+
+@available(from: Lift 1.0)
+infix operator func . <M : Method> (subject: M.Subject, method: M) -> M.BoundMethod {
+	
+	@abstract: Returns a method bound to a subject.
+	@details: To bind a method `method` on a value `subject`, write `subject.method`.
+	
+	return method(subject)
+	
+}
