@@ -5,7 +5,13 @@
 protocol Property : Function {
 	
 	@abstract: A value associated with another value.
-	@details: A property is a value `property` that is associated with a value `subject` that can be queried like this: `subject.property`.
+	@details {
+		
+		A property is a value `property` that is associated with a value `subject` that can be queried like this: `subject.property`.
+		
+		The Lift compiler automatically derives concrete types that conform to this protocol for each property definition. Other types can also add conformance to `Property` so that they behave like properties.
+		
+	}
 	
 	type let Subject: Any.Type {
 		@abstract: The type of values on which the property is defined.
@@ -58,6 +64,13 @@ infix operator func . <P : Property> (subject: P.Subject, property: P) -> P.Valu
 protocol MutableProperty : Property {
 	
 	@abstract: A property whose value can be reassigned.
+	@details {
+		
+		Setting a mutable property is purely syntactical sugar; Lift doesn't support functions with side effects. The form `subject.property = newValue` is rewritten as `subject = type(of: subject).property.mutator(subject, newValue: newValue)` (which is again rewritten if `subject` is a property).
+		
+		The Lift compiler automatically derives concrete types that conform to this protocol for each mutable property definition. Other types can also add conformance to `MutableProperty` so that they behave like mutable properties.
+		
+	}
 	
 	type let Mutator: Function.Type where Mutator.Argument == (Subject, newValue: Value), Mutator.Result == Subject, !Mutator.failable {
 		@abstract: A function that, given a subject and a new value, produces a copy of the subject where the new value is assigned to the property.

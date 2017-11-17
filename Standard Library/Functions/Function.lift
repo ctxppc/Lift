@@ -11,13 +11,37 @@ protocol Function {
 		
 		A function can be failable. Failable functions may fail to produce a result value, and instead produce an error. The general guideline is to throw an error when a condition has occurred that prevents a value from being produced but where the function's preconditions or invariants are still met. Division by zero is forbidden by a precondition and should therefore not produce an error; instead the division operation should raise a precondition failure (which immediately terminates the current agent). However, parsing an integer from a string should fail with an error because parsing also involves detecting strings not conforming to the grammar, which is a valid use case of parsing.
 		
-		A unfailable function type can be written as `Functor<from: Argument, to: Result>` but also `Argument -> Result`. The arrow, when the type is read left-to-right, indicates the *processing* or *mapping* of a value of the left type to a value of the right type. A failable function type can be written as `Functor<from: Argument, to: Result, throws: true>` but also `Argument throws -> Result`. The `throws` just before the arrow indicates that an error can occur before a value is produced. The `->` (and `throws ->`) type operator is right-associative type: `A -> B -> C` is the same as `A -> (B -> C)` and expresses a function whose result is a function `B -> C`.
+		A unfailable function type can be written as `Function<from: Argument, to: Result>` but also `Argument -> Result`. The arrow, when the type is read left-to-right, indicates the *processing* or *mapping* of a value of the left type to a value of the right type. A failable function type can be written as `Function<from: Argument, to: Result, throws: true>` but also `Argument throws -> Result`. The `throws` just before the arrow indicates that an error can occur before a value is produced. The `->` (and `throws ->`) type operator is right-associative type: `A -> B -> C` is the same as `A -> (B -> C)` and expresses a function whose result is a function `B -> C`.
 		
 		A function can be applied to an argument by wrapping the argument in parentheses (unless the argument is a tuple) and juxtaposing it with the function. This expression resolves to a result value. That is, given a function `f : Argument -> Result` and an argument `a : Argument`, `f(a)` evaluates to a value of type `Result`. If the function is failable, the expression or any superexpression must be prepended with the keyword `try`, e.g. `let result = try f(a)`.
 		
+		Note that functions cannot have side-effects. Clients of a function, the Lift compiler, and the Lift runtime are allowed to memoise, inline, and disregard a function with the presumption that a function always maps an argument to the same result and doesn't change anything else in the system.
+		
+		# Conformance to this protocol
+		
 		Every type that has a well-defined, unambiguous “mapping” semantic can conform to this protocol by adopting this protocol. For example, expression types are appropriate candidates from outside the standard library.
 		
-		Note that functions cannot have side-effects. Clients of a function, the Lift compiler, and the Lift runtime are allowed to memoise, inline, and disregard a function with the presumption that a function always maps an argument to the same result and doesn't change anything else in the system.
+		The Lift compiler automatically derives concrete types that conform to this protocol for each free function, in a similar way to methods.
+		
+	    A free `sorted` function is compiled as if the following was written:
+		
+   			struct sorted : Function {
+   				type let Argument = List
+   				type let Result = List
+   				func result(for list: List) -> List { … }
+   			}
+	
+   		Type parameters in a function definition are compiled as type parameters in the corresponding type definition. For example, a free `func adding<N : Numeric>(_ n: N) -> Int` is compiled as if the following was written:
+	
+   			struct adding : Method {
+   				derived type init(N: Any.Type)
+   				type let N = N.Type
+   				type let Argument = N
+   				type let Result = Int
+   				func result(for n: N) -> Int { … }
+   			}
+		
+		Methods, initialisers, and other function-like constructs automatically conform to subprotocols of `Function`.
 		
 	}
 	

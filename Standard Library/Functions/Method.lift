@@ -49,7 +49,7 @@ protocol Method : Function {
 		
 		# Conformance to this protocol
 		
-		The Lift compiler automatically creates concrete types for each method definition that conform to this protocol. The `sorted` method above is compiled as if the following was written:
+		The Lift compiler automatically derives concrete types that conform to this protocol for each method definition. The `sorted` method above is compiled as if the following was written:
 		
 			struct sorted : Method {
 				type let Argument = List
@@ -67,7 +67,7 @@ protocol Method : Function {
 				func result(for integer: Int) -> N -> Int { … }
 			}
 		
-		Other types can add conformance to `Method`, but this is not commonly done.
+		Other types can also add conformance to `Method` so that they behave like methods.
 		
 	}
 	

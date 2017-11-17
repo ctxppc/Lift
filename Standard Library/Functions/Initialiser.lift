@@ -19,6 +19,10 @@ protocol Initialiser : Function {
 		
 		Every initialiser is a functor `Argument -> Subject`. An initialiser on a type `T` can be retrieved as `T.init`.
 		
+		# Conformance to this protocol
+		
+		The Lift compiler automatically derives concrete types that conform to this protocol for each initialiser, in a similar way to methods. Other types can also add conformance to `Initialiser` so that they behave like initialisers.
+		
 	}
 	
 	type let Subject: Any.Type {
@@ -42,4 +46,14 @@ protocol Initialiser : Function {
 @available(from: Lift 1.0)
 extension Initialiser {
 	derived existential type init(of Subject: Any.Type, from Argument: Any.Type = (), throws failable: Bool = false)
+}
+
+@available(from: Lift 1.0)
+infix operator func . <I : Initialiser> (_: I.Subject.Type, initialiser: I) -> I {
+	
+	@abstract: Returns given initialiser.
+	@details: To get an initialiser defined on a type `Subject`, write `Subject.init`.
+	
+	return initialiser
+	
 }
