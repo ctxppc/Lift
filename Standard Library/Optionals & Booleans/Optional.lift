@@ -19,11 +19,7 @@ enum Optional {
 	
 }
 
-extension Optional : ExpressibleByNilLiteral {
-	init(nilLiteral: ()) {
-		self = .none
-	}
-}
+let nil<Value> = Optional<Value>.none
 
 extension Optional : BidirectionalCollection, MutableCollection {
 	
@@ -62,5 +58,9 @@ extension Optional : BidirectionalCollection, MutableCollection {
 	
 }
 
+derived extension Optional : Equatable where Value : Equatable
+derived extension Optional : Hashable where Value : Hashable
+derived extension Optional : Comparable where Value : Comparable
+
 postfix operator ?
-derived postfix type operator func ? (Value: Any.Type) -> Optional<Value>.Type
+derived postfix operator func ? <Value> (_: Value.Type) -> Optional<Value>.Type

@@ -1,0 +1,230 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 Lift Language Project
+
+@available(from: Lift 1.0)
+let Int = FixedWidthInteger<optimalWidthGreaterThanOrEqualTo: 64, for: .active, base: 2>
+
+@available(from: Lift 1.0)
+struct FixedWidthInteger {
+	
+	@abstract: A fixed-width signed integer.
+	@note: Use the pre-instantiated `Int` type unless a specific width and/or base is required.
+	
+	derived type init(width: Int, base: Int) where width >= 1, base >= 2
+	
+	type init(optimalWidthGreaterThanOrEqualTo minimalWidth: Int, for architecture: Architecture, base: Int) {
+		@todo: Determine optimal width and initialise
+	}
+	
+	type init(optimalWidthSmallerThanOrEqualTo maximalWidth: Int, for architecture: Architecture, base: Int) where maximalWidth >= 1 {
+		@todo: Determine optimal width and initialise
+	}
+	
+	type let width: Int where width >= 1 {
+		@abstract: The width of the integer; in bits, digits, or numbers.
+		@note: The width can be any strictly positive integer, however a restricted set of widths is efficiently implemented by architectures. Use `init(optimalWidthGreaterThanOrEqualTo:for:base:)` or `init(optimalWidthSmallerThanOrEqualTo:for:base:)` to determine an optimal width.
+	}
+	
+	type func canRepresent<width, base>(_ integer: FixedWidthInteger<width: width, base: base>) -> Bool where Self.base != base {
+		
+		@abstract: Returns a Boolean value indicating whether given integer of different base can be represented by this type.
+		
+		return Self(integer) != nil
+		
+	}
+	
+	type func canRepresent<width>(_ integer: FixedWidthInteger<width: width, base: Self.base>) -> Bool where Self.width < width {
+		
+		@abstract: Returns a Boolean value indicating whether given integer of larger width can be represented by this type.
+		
+		let representableRange: ClosedRange<FixedWidthInteger<width: width, base: base>> = FixedWidthInteger(Self.smallest)...FixedWidthInteger(Self.largest)
+		return representableRange.contains(FixedWidthInteger(self))
+		
+	}
+	
+	type let smallest = (Self(base) - 1) << Self(width) {
+		@abstract: The smallest value of this type.
+	}
+	
+	type let largest = Self(smallest) &- 1 {
+		@abstract: The largest value of this type.
+	}
+	
+	init?<width, base>(_ integer: FixedWidthInteger<width: width, base: base>) where Self.base != base {
+		@abstract: Converts given integer to one of different base, returning `nil` if the value cannot be represented.
+		@todo: Convert
+	}
+	
+	init<width>(_ integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width > width {
+		@abstract: Converts given integer to one of larger width.
+		@note: This is not an implicit initialiser because conversion incurs a penalty cost, which may be significant in hot loops.
+		@todo: Copy words
+	}
+	
+	init<width>(representableInteger integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width < width, Self.canRepresent(integer) {
+		@abstract: Converts given integer to one of smaller width, failing if the value cannot be represented.
+	}
+	
+	init?<width>(exactly integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width < width {
+		@abstract: Converts given integer to one of smaller width, returning `nil` if the value cannot be represented.
+		@todo: Copy words
+	}
+	
+	init<width>(truncating integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width < width {
+		@abstract: Converts given integer to one of smaller width, truncating the most-significant bits that cannot be represented (if any).
+		@todo: Copy words
+	}
+	
+	native mutating infix operator func += (term: Self)
+	infix operator func + (term: Self) -> Self {
+		var sum = self
+		sum += term
+		return sum
+	}
+	
+	native mutating infix operator func -= (subtrahend: Self)
+	infix operator func - (subtrahend: Self) -> Self {
+		var difference = self
+		difference -= subtrahend
+		return difference
+	}
+	
+	native mutating infix operator func *= (factor: Self)
+	infix operator func * (factor: Self) -> Self {
+		var product = self
+		product *= factor
+		return product
+	}
+	
+	infix operator func * (factor: Self) -> Self where factor == base {
+		return self << 1
+	}
+	
+	native mutating infix operator func /= (divisor: Self) where divisor != 0
+	infix operator func / (divisor: Self) -> Self where divisor != 0 {
+		var quotient = self
+		quotient /= divisor
+		return quotient
+	}
+	
+	infix operator func / (divisor: Self) -> Self where divisor == base {
+		return self >> 1
+	}
+	
+	prefix operator func - () -> Self {
+		return 0 - self
+	}
+	
+	native func divided(by divisor: Self) -> (quotient: Self, remainder: Self) where divisor != 0
+
+	native mutating infix operator func &+= (term: Self)
+	infix operator func &+ (term: Self) -> Self {
+		var sum = self
+		sum &+= term
+		return sum
+	}
+	
+	native mutating infix operator func -= (subtrahend: Self)
+	infix operator func &- (subtrahend: Self) -> Self {
+		var difference = self
+		difference &-= subtrahend
+		return difference
+	}
+	
+	native mutating infix operator func *= (factor: Self)
+	infix operator func &* (factor: Self) -> Self {
+		var product = self
+		product &*= factor
+		return product
+	}
+	
+	native var words: WordCollection { get set }
+	struct WordCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of words that make up an integer.
+		
+		type let Index = Int
+		type let Element = Word
+		
+		let startIndex: Index = 0
+		native var endIndex: Index { get }
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+	native var bytes: ByteCollection { get set }
+	struct ByteCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of bytes that make up an integer.
+		
+		type let Index = Int
+		type let Element = Byte
+		
+		let startIndex: Index = 0
+		native var endIndex: Index { get }
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+	native var bits: BitCollection { get set }
+	struct BitCollection : RandomAccessCollection, MutableCollection {
+		
+		@abstract: A sequence of bits that make up an integer.
+		
+		type let Index = Int
+		type let Element = Bit
+		
+		let startIndex: Index = 0
+		native var endIndex: Index { get }
+		native subscript (index: Index) -> Element { get set }
+		
+		func index(before index: Index) -> Index {
+			return index - 1
+		}
+		
+		func index(after index: Index) -> Index {
+			return index + 1
+		}
+		
+	}
+	
+}
+
+extension FixedWidthInteger : Comparable {
+	native infix operator func == (first: Self, other: Self) -> Bool
+	native infix operator func < (first: Self, other: Self) -> Bool
+}
+
+extension FixedWidthInteger : Hashable where Self.width == Int.width, Self.base == Int.base {
+	var hashValue = self
+}
+
+extension FixedWidthInteger : Hashable where Self.width < Int.width, Self.base == Int.base {
+	var hashValue = Int(self)
+}
+
+extension FixedWidthInteger : Hashable where Self.width > Int.width, Self.base == Int.base {
+	var hashValue = Int(truncating: self)
+}
+
+extension FixedWidthInteger : Hashable where Self.base != Int.base {
+	var hashValue: Int {
+		@todo: Hash words
+	}
+}

@@ -1,0 +1,21 @@
+@author: Constantino Tsarouhas
+@copyright: Lift Standard Library © 2017 Lift Language Project
+
+@available(from: Lift 1.0)
+struct Architecture {
+	
+	@abstract: A conceptual and physical configuration of the system that executes the Lift compiler and/or runtime.
+	
+	native type let active: Self {
+		@abstract: The architecture for which the Lift compiler is producing an executable.
+		@note: If compiling for multiple target architectures, this property takes a different value for each architecture.
+	}
+	
+	derived init(processorFamily: String? = nil, processorVersion: String? = nil, vendor: String? = nil, operatingSystemFamily: String? = nil, applicationBinaryInterface: String? = nil)
+	let processorFamily: String?
+	let processorVersion: String?
+	let vendor: String?
+	let operatingSystemFamily: String?
+	let applicationBinaryInterface: String?
+	
+}

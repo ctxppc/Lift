@@ -17,7 +17,7 @@ protocol Initialiser : Function {
 		
 		Initialisers may be failable; when an error is thrown, the value is uninitialised. Initialisers do not produce a value.
 		
-		Every initialiser is a functor `Argument -> Subject`. An initialiser on a type `T` can be retrieved as `T.init`.
+		Every initialiser is a function `Argument -> Subject`. An initialiser on a type `T` can be retrieved as `T.init`.
 		
 		# Conformance to this protocol
 		

@@ -2,13 +2,16 @@
 @copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
-enum Bool {
+enum Bool : Hashable, Comparable {
+	
 	case false
 	case true
-}
-
-extension Bool : ExpressibleByBooleanLiteral {
-	init(booleanLiteral: Bool) {
-		self = booleanLiteral
+	
+	prefix operator func ! () -> Self {
+		return switch self {
+			case false:	true
+			case true:	false
+		}
 	}
+	
 }
