@@ -2,8 +2,4 @@
 @copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
-native func type<T>(of value: T) -> T.Type {
-	@abstract: Returns the type of given value.
-	@parameter value: The value whose type to determine.	
-	@returns: The type of `value`.
-}
+derived func type<T>(of value: T) -> T.Type

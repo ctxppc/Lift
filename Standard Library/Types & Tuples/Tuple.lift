@@ -11,30 +11,112 @@ struct Tuple {
 		
 		Tuple types are almost always defined using the shorthand form `(label1: Type1, label2: Type2, …)`. Every comma-separated item is an **element** of the tuple type and carries an optional label. Some or all elements can also be unlabelled when their meaning is clear from the context, e.g., `(String, length: Int)`.
 		
-		Tuples are almost always written using the similar shorthand form `(label1: value1, label2: value2, …)`. The label must be included for every value of a labelled element; no label may be associated with a value of an unlabelled element. As an example, for the tuple type `(String, age: Int)`, a valid tuple can be written as `("some string", age: 25)`. For brevity, if the value for a labelled element is a constant or variable with the same name as the label, the label may be omitted. Using the same example `(String, age: Int)` and given an variable `age: Int`, a valid tuple can be written as `("some string", age)`.
+		Tuples are almost always written using the similar shorthand form `(label1: value1, label2: value2, …)`. The label must be included for every value of a labelled element; no label may be associated with a value of an unlabelled element. As an example, for the tuple type `(String, age: Int)`, a valid tuple is written as `("some string", age: 25)`.
 		
-		Note that in the function type shorthand `(argument1: Type1, argument2: Type2, …) -> Result`, the parameter list between parentheses is *not* a tuple type. This is because function parameters can have different call-site labels and can be decorated with function-specific attributes such as `inout` or `shared`. Tuple types can be used within parameters with an additional layer of parentheses, e.g., `(tuple: (String, age: Int)) -> Result`; the elements within that tuple cannot be decorated with function-specific attributes and cannot have different call-site labels. See `Function` for more information about function shorthand notation.
-		
-		Tuple types are treated specially by the compiler in that tuple types carry an optional label with every component which are used to derive members. The compiler automatically derives a property for every element in the tuple type. Every element can be accessed using its ordinal, starting with `0` for the first element. In addition, every labelled element can be accessed using its label. For example, a value of `(String, score: Int)` has three properties `0: String`, `1: Int`, and `score: Int` with `1` and `age` accessing the same element. Tuples can have duplicate labels but the compiler does not derive properties using these labels. To access any element with the same label as another element, the derived ordinal properties must be used.
-		
-		The tuple type with zero elements contains exactly one value, the **unit value**. Functions with side-effects that have no useful results to return, return the unit value. The unit tuple type is written as `()` as is its unit value.
+		The tuple type with zero elements contains exactly one value, the **unit value**. The unit tuple type is written as `()` as is its unit value.
 		
 	}
 	
-	derived type init(of Elements: Array<of: Any.Type>, labels: Array<of: String?>) where labels.count == Components.count
+	type init() {
+		Self.init(of: [], labels: [])
+	}
+	
+	derived type init(of Elements: Array<of: Any.Type>, labels: Array<of: Symbol?>) where !labels.compacted().containsRepeatedOccurrences(), labels.count == Elements.count
 	
 	type let Elements: Array<of: Any.Type> {
-		@abstract: The types of the individual elements.
+		@abstract: The types of the individual elements of tuples of this tuple type.
 	}
 	
-	type let labels: Array<of: String?> where labels.count == Components.count {
-		@abstract: The labels of the individual elements.
+	type let labels: Array<of: Symbol?> where !labels.compacted().containsRepeatedOccurrences(), labels.count == Elements.count {
+		@abstract: The types of the individual elements of tuples of this tuple type.
+	}
+	
+	derived infix operator type func , <Value, label> (_: LabelledElement<of: Value, label: label>.Type) -> Tuple(of: Self.Elements ++ Value, labels: Self.labels ++ label).Type
+	
+	derived infix operator type func , <Value> (_: Value.Type) -> Tuple(of: Self.Elements ++ Value, labels: Self.labels ++ nil).Type
+	
+	type func typeOfElementWithLabel(_ label: Symbol) -> Any.Type? {
+		guard let index = labels.indexOfFirst(occurrenceOf: label) else { return nil }
+		return Elements[index]
+	}
+	
+	derived init(_ elements: Elements)
+	
+	let elements: Elements {	// TODO: this is an instance of a type array. Compiler magic or a first-class language feature?
+		@abstract: The individual elements in the tuple.
+	}
+	
+	infix operator func , <Value, label> (labelledElement: LabelledElement<of: Value, label: label>) -> (Self, LabelledElement<of: Value, label: label>) {
+		let NewTupleType = Self, LabelledElement<of: Value, label: label>
+		return NewTupleType(self.elements ++ labelledElement.value)
+	}
+	
+	infix operator func , <Value> (value: Value) -> (Self, Value) {
+		let NewTupleType = Self, Value
+		return NewTupleType(self.elements ++ value)
+	}
+	
+	static infix operator func . (label: Symbol) -> (typeOfElementWithLabel(label) !! "unknown label") {
+		
+		@abstract: Returns the value associated with given label.
+		@description {
+			
+			This operator allows the form `tuple.label` to get an element associated with `label`.
+			
+			The symbol must be statically evaluable. This is a requirement because the value type depends on it.
+			
+		}
+		
+		let index = labels.indexOfFirst(occurrenceOf: label) !! "contradiction with typeOfElementWithLabel()'s result"
+		return elements[index]
+		
+	}
+	
+	static infix operator func . (index: Elements.Index) -> Elements[index] {
+		
+		@abstract: Returns the value at given index.
+		@description {
+			
+			This operator allows the form `tuple.index` (e.g., `tuple.0`) to get an element at `index`.
+			
+			The index must be statically evaluable. This is a requirement because the value type depends on it.
+			
+		}
+		
+		return elements[index]
+		
+	}
+	
+	struct LabelledElement {
+		
+		derived type init(of Value: Any.Type, label: Symbol)
+		type let Value: Any.Type
+		type let label: Symbol
+		
+		derived init(_ value: Value)
+		var value: Value
+		
 	}
 	
 }
 
 @available(from: Lift 1.0)
-native extension Tuple : Comparable where Tuple.Elements : Comparable
+extension Tuple : Equatable where Elements : Equatable {
+	infix operator func == (other: Self) -> Bool {
+		return self.elements == other.elements
+	}
+}
 
 @available(from: Lift 1.0)
-native extension Tuple : Hashable where Tuple.Elements : Hashable
+extension Tuple : Comparable where Elements : Comparable {
+	infix operator func < (other: Self) -> Bool {
+		return self.elements < other.elements
+	}
+}
+
+@available(from: Lift 1.0)
+extension Tuple : Hashable where Elements : Hashable {
+	var hashValue: Int {
+		return elements.hashValue
+	}
+}
