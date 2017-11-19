@@ -2,47 +2,39 @@
 @copyright: Lift Standard Library © 2017 Lift Language Project
 
 @available(from: Lift 1.0)
-let Int = FixedWidthInteger<optimalWidthGreaterThanOrEqualTo: 64, for: .active, base: 2>
+let Int = FixedWidthInteger<optimalWidthGreaterThanOrEqualTo: 64, for: .active>
 
 @available(from: Lift 1.0)
 struct FixedWidthInteger {
 	
-	@abstract: A fixed-width signed integer.
-	@note: Use the pre-instantiated `Int` type unless a specific width and/or base is required.
+	@abstract: A binary, fixed-width signed integer.
+	@note: Use the pre-instantiated `Int` type unless a specific width is required.
 	
-	derived type init(width: Int, base: Int) where width >= 1, base >= 2
+	derived type init(width: Int) where width >= 1
 	
-	type init(optimalWidthGreaterThanOrEqualTo minimalWidth: Int, for architecture: Architecture, base: Int) {
+	type init(optimalWidthGreaterThanOrEqualTo minimalWidth: Int, for architecture: Architecture) {
 		@todo: Determine optimal width and initialise
 	}
 	
-	type init(optimalWidthSmallerThanOrEqualTo maximalWidth: Int, for architecture: Architecture, base: Int) where maximalWidth >= 1 {
+	type init(optimalWidthSmallerThanOrEqualTo maximalWidth: Int, for architecture: Architecture) where maximalWidth >= 1 {
 		@todo: Determine optimal width and initialise
 	}
 	
 	type let width: Int where width >= 1 {
-		@abstract: The width of the integer; in bits, digits, or numbers.
-		@note: The width can be any strictly positive integer, however a restricted set of widths is efficiently implemented by architectures. Use `init(optimalWidthGreaterThanOrEqualTo:for:base:)` or `init(optimalWidthSmallerThanOrEqualTo:for:base:)` to determine an optimal width.
+		@abstract: The width of the integer, in bits.
+		@note: The width can be any strictly positive integer, however a restricted set of widths is efficiently implemented by architectures. Use `init(optimalWidthGreaterThanOrEqualTo:for:)` or `init(optimalWidthSmallerThanOrEqualTo:for:)` to determine an optimal width.
 	}
 	
-	type func canRepresent<width, base>(_ integer: FixedWidthInteger<width: width, base: base>) -> Bool where Self.base != base {
-		
-		@abstract: Returns a Boolean value indicating whether given integer of different base can be represented by this type.
-		
-		return Self(integer) != nil
-		
-	}
-	
-	type func canRepresent<width>(_ integer: FixedWidthInteger<width: width, base: Self.base>) -> Bool where Self.width < width {
+	type func canRepresent<width>(_ integer: FixedWidthInteger<width: width>) -> Bool where Self.width < width {
 		
 		@abstract: Returns a Boolean value indicating whether given integer of larger width can be represented by this type.
 		
-		let representableRange: ClosedRange<FixedWidthInteger<width: width, base: base>> = FixedWidthInteger(Self.smallest)...FixedWidthInteger(Self.largest)
+		let representableRange: ClosedRange<FixedWidthInteger<width: width>> = FixedWidthInteger(Self.smallest)...FixedWidthInteger(Self.largest)
 		return representableRange.contains(FixedWidthInteger(self))
 		
 	}
 	
-	type let smallest = (Self(base) - 1) << Self(width) {
+	type let smallest = 1 << Self(width) {
 		@abstract: The smallest value of this type.
 	}
 	
@@ -50,27 +42,22 @@ struct FixedWidthInteger {
 		@abstract: The largest value of this type.
 	}
 	
-	init?<width, base>(_ integer: FixedWidthInteger<width: width, base: base>) where Self.base != base {
-		@abstract: Converts given integer to one of different base, returning `nil` if the value cannot be represented.
-		@todo: Convert
-	}
-	
-	init<width>(_ integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width > width {
+	init<width>(_ integer: FixedWidthInteger<width: width>) where Self.width > width {
 		@abstract: Converts given integer to one of larger width.
 		@note: This is not an implicit initialiser because conversion incurs a penalty cost, which may be significant in hot loops.
 		@todo: Copy words
 	}
 	
-	init<width>(representableInteger integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width < width, Self.canRepresent(integer) {
+	init<width>(representableInteger integer: FixedWidthInteger<width: width>) where Self.width < width, Self.canRepresent(integer) {
 		@abstract: Converts given integer to one of smaller width, failing if the value cannot be represented.
 	}
 	
-	init?<width>(exactly integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width < width {
+	init?<width>(exactly integer: FixedWidthInteger<width: width>) where Self.width < width {
 		@abstract: Converts given integer to one of smaller width, returning `nil` if the value cannot be represented.
 		@todo: Copy words
 	}
 	
-	init<width>(truncating integer: FixedWidthInteger<width: width, base: Self.base>) where Self.width < width {
+	init<width>(truncating integer: FixedWidthInteger<width: width>) where Self.width < width {
 		@abstract: Converts given integer to one of smaller width, truncating the most-significant bits that cannot be represented (if any).
 		@todo: Copy words
 	}
@@ -96,8 +83,8 @@ struct FixedWidthInteger {
 		return product
 	}
 	
-	infix operator func * (factor: Self) -> Self where factor == base {
-		return self << 1
+	static infix operator func * (factor: Self) -> Self where factor.bits.filter { $0.set }.count == 1 {
+		return self << factor.bits.distance(from: factor.bits.startIndex, to: factor.bits.indexOfFirst(equalTo: 1) !! "count == 1 constraint")
 	}
 	
 	native mutating infix operator func /= (divisor: Self) where divisor != 0
@@ -137,6 +124,9 @@ struct FixedWidthInteger {
 		product &*= factor
 		return product
 	}
+	
+	func isPowerOf()
+	
 	
 	native var words: WordCollection { get set }
 	struct WordCollection : RandomAccessCollection, MutableCollection {

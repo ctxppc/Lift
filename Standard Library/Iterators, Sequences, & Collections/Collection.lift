@@ -4,60 +4,42 @@
 @available(from: Lift 1.0)
 protocol Collection : Sequence {
 	
-	@abstract: A type that provides the values of a sequence one at a time.
+	@abstract: A finite sequence whose elements can be traversed multiple times, nondestructively, and accessed by an indexed subscript.
 	
-	@invariant: Any two iterators from the same sequence produce the same elements and in the same order.
+	type let failable = false
+	type let infinite = false
+	type let Subsequence: Collection.Type where Subsequence.Subsequence == Subsequence, !Subsequence.failable, !Subsequence.infinite, Subsequence.Element == Element
 	
-	static let Element: Any.Type {
-		@abstract: The type of the sequence's elements.
+	type let Index: Comparable.Type {
+		@abstract: A value that specifies a single element in the collection, or the position after the last element.
 	}
 	
-	static let failable: Bool = false {
-		@abstract: Whether the sequence may fail during iteration.
+	var startIndex: Index {
+		@abstract: The position of the first element.
+		get
 	}
 	
-	static let infinite: Bool = false {
-		@abstract: Whether the sequence is known to be infinite in all cases.
+	var endIndex: Index {
+		@abstract: The position after the last element.
+		get
 	}
 	
-	static let IteratorType: Iterator.Type where 
-		IteratorType.Element == Element, 
-		IteratorType.failable == failable, 
-		IteratorType.infinite == infinite {
-		@abstract: The type of the sequence's iterators.
+	subscript (index: Index) -> Element {
+		@abstract: Accesses the element at a given index.
+		get
 	}
 	
-	func makeIterator() throws[if: failable] -> IteratorType {
-		@abstract: Returns an iterator over the sequence's elements.
-		@throws: An error if the iterator can't be created.
-		@returns: An iterator over the sequence's elements.
+	func index(before index: Index) -> Index {
+		@abstract: Returns the index that specifies the element before the element specified by given index.
 	}
 	
-	static let Subsequence: Sequence.Type where 
-		Subsequence.Subsequence == Subsequence, 
-		Subsequence.failable == failable, 
-		Subsequence.infinite == infinite, 
-		Subsequence.Element == Element {
-		@abstract: The type of the sequence's subsequences.
+	func index(after index: Index) -> Index {
+		@abstract: Returns the index that specifies the element after the element specified by given index, or the end index if given index specifies the last element.
 	}
 	
-	func prefix(maxLength: Int) throws[if: failable] -> Subsequence where maxLength >= 0 {
-		@abstract: Returns a subsequence, up to a specified maximum length, containing the initial elements of the sequence.
-		@throws: An error if the iterator can't be created or if it throws an error during iteration.
-		@returns: A subsequence starting at the beginning of `self` with at most `maxLength` elements.
-	}
-	
-	func prefix(while predicate: (Element) throws -> Bool) throws[if: failable] rethrows -> Subsequence {
-		@abstract: Returns a subsequence containing the initial, consecutive elements that satisfy the given predicate.
-		@parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be included in the result.
-		@throws: An error if the iterator can't be created or if it throws an error during iteration.
-		@returns: A subsequence of the initial, consecutive elements in `self` that satisfy `predicate`.
-	}
-	
-	func suffix(maxLength: Int) throws[if: failable] -> Subsequence where !infinite, maxLength >= 0 {
-		@abstract: Returns a subsequence, up to a specified maximum length, containing the final elements of the sequence.
-		@throws: An error if the iterator can't be created or if it throws an error during iteration.
-		@returns: A subsequence terminating at the end of `self` with at most `maxLength` elements.
-	}
-	
+}
+
+@available(from: Lift 1.0)
+extension Collection {
+	derived existential type init(of Element: Any.Type)
 }

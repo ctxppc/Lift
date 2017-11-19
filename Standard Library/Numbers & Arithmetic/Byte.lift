@@ -37,7 +37,14 @@ struct Byte {
 
 struct Bit {
 	
-	derived type init(_ set: Bool)
+	derived implicit init(_ set: Bool)
+	
+	implicit init(_ integer: Int) where integer == 0 || integer == 1 {
+		set = switch integer {
+			case 0:	false
+			case 1: true
+		}
+	}
 	
 	var set: Bool {
 		@abstract: Whether the bit is set (high, on, …).

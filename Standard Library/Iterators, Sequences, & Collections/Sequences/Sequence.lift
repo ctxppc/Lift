@@ -12,17 +12,17 @@ protocol Sequence {
 		@abstract: The type of the sequence's elements.
 	}
 	
-	type let failable: Bool = false {
+	type let failable: Bool {
 		@abstract: Whether the sequence may fail during iteration.
 	}
 	
-	type let infinite: Bool = false {
+	type let infinite: Bool {
 		@abstract: Whether the sequence is known to be infinite in all cases.
 	}
 	
-	type let IteratorType: Iterator.Type where 
-		IteratorType.Element == Element, 
-		IteratorType.failable == failable, 
+	type let IteratorType: Iterator.Type where
+		IteratorType.Element == Element,
+		IteratorType.failable == failable,
 		IteratorType.infinite == infinite {
 		@abstract: The type of the sequence's iterators.
 	}
@@ -34,9 +34,9 @@ protocol Sequence {
 	}
 	
 	type let Subsequence: Sequence.Type where 
-		Subsequence.Subsequence == Subsequence, 
-		Subsequence.failable == failable, 
-		Subsequence.infinite == infinite, 
+		Subsequence.Subsequence == Subsequence,
+		Subsequence.failable == failable,
+		Subsequence.infinite == infinite,
 		Subsequence.Element == Element {
 		@abstract: The type of contiguous subsequences of the sequence.
 	}
@@ -57,13 +57,13 @@ protocol Sequence {
 }
 
 @available(from: Lift 1.0)
+extension Sequence {
+	derived existential type init(of Element: Any.Type, failable: Bool = false, infinite: Bool = false)
+}
+
+@available(from: Lift 1.0)
 extension Sequence where Iterator == Self {
-	
 	func makeIterator() -> Self {
 		return self
 	}
-	
 }
-
-
-

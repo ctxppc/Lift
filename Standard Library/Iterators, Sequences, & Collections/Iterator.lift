@@ -32,7 +32,5 @@ protocol Iterator {
 
 @available(from: Lift 1.0)
 extension Iterator {
-	
-	derived type init(of Element: Any.Type, failable: Bool = false, infinite: Bool = false)
-	
+	derived existential type init(of Element: Any.Type, failable: Bool = false, infinite: Bool = false)
 }

@@ -36,7 +36,7 @@ struct Tuple {
 	derived infix operator type func , <Value> (_: Value.Type) -> Tuple(of: Self.Elements ++ Value, labels: Self.labels ++ nil).Type
 	
 	type func typeOfElementWithLabel(_ label: Symbol) -> Any.Type? {
-		guard let index = labels.indexOfFirst(occurrenceOf: label) else { return nil }
+		guard let index = labels.indexOfFirst(equalTo: label) else { return nil }
 		return Elements[index]
 	}
 	
@@ -67,7 +67,7 @@ struct Tuple {
 			
 		}
 		
-		let index = labels.indexOfFirst(occurrenceOf: label) !! "contradiction with typeOfElementWithLabel()'s result"
+		let index = labels.indexOfFirst(equalTo: label) !! "contradiction with typeOfElementWithLabel()'s result"
 		return elements[index]
 		
 	}
